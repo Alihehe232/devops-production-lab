@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+venv/
+.env
+.DS_Store
+
+# DevOps & Logs
+*.log
+*.sqlite
+.terraform/
+*.tfstate
+*.tfstate.backup
+dist/
+build/
