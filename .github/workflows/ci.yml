@@ -60,11 +60,11 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'ghcr.io/${{ env.REPO_LC }}/app:test-${{ github.sha }}'
+          scan-type: 'fs'
+          scan-ref: '.'
           format: 'table'
           exit-code: '0'
           ignore-unfixed: true
-          vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
 
       - name: Log in to GitHub Container Registry
@@ -85,4 +85,3 @@ jobs:
           tags: |
             ghcr.io/${{ env.REPO_LC }}/app:latest
             ghcr.io/${{ env.REPO_LC }}/app:${{ github.sha }}
-            
