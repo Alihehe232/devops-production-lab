@@ -3,21 +3,27 @@
   hosts: all
   vars:
     image_tag: "{{ lookup('env', 'IMAGE_TAG') | default('latest', true) }}"
+    project_root: "{{ playbook_dir }}/.."
 
   tasks:
     - name: Pull and start containers
       shell: |
         IMAGE_TAG={{ image_tag }} docker compose -f docker-compose.prod.yml up -d --force-recreate
+      args:
+        chdir: "{{ project_root }}"
 
     - name: Run healthcheck
       shell: |
         bash scripts/healthcheck.sh localhost 80
+      args:
+        chdir: "{{ project_root }}"
       register: health_result
       ignore_errors: yes
 
     - name: Trigger Rollback if Healthcheck Fails
       shell: |
         bash scripts/rollback.sh {{ previous_tag | default('latest') }}
+      args:
+        chdir: "{{ project_root }}"
       when: health_result.rc != 0
       failed_when: true
-      
