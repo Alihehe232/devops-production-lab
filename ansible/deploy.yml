@@ -1,36 +1,23 @@
 ---
-- name: Deploy Application to Target Server
+- name: Deploy Application
   hosts: all
   vars:
-    app_dir: "/opt/devops-production-lab"
     image_tag: "{{ lookup('env', 'IMAGE_TAG') | default('latest', true) }}"
 
   tasks:
-    - name: Ensure project directory exists
-      file:
-        path: "{{ app_dir }}"
-        state: directory
-        mode: '0755'
-
-    - name: Copy production compose and configs
-      copy:
-        src: "../docker/"
-        dest: "{{ app_dir }}/docker/"
-
     - name: Pull and start containers
       shell: |
-        cd {{ app_dir }}
-        IMAGE_TAG={{ image_tag }} docker compose -f docker/docker-compose.prod.yml pull
-        IMAGE_TAG={{ image_tag }} docker compose -f docker/docker-compose.prod.yml up -d --force-recreate
+        IMAGE_TAG={{ image_tag }} docker compose -f docker-compose.prod.yml up -d --force-recreate
 
     - name: Run healthcheck
       shell: |
-        bash {{ app_dir }}/scripts/healthcheck.sh localhost 80
+        bash scripts/healthcheck.sh localhost 80
       register: health_result
       ignore_errors: yes
 
     - name: Trigger Rollback if Healthcheck Fails
       shell: |
-        bash {{ app_dir }}/scripts/rollback.sh {{ previous_tag | default('latest') }}
+        bash scripts/rollback.sh {{ previous_tag | default('latest') }}
       when: health_result.rc != 0
       failed_when: true
+      
