@@ -28,7 +28,7 @@ jobs:
 
       - name: Run tests with pytest
         run: |
-          PYTHONPATH=. pytest app/tests/
+          PYTHONPATH=. python -m pytest app/tests/
 
   security-and-build:
     name: Build & Security Scan
@@ -42,6 +42,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set lower case owner name
+        run: |
+          echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -51,12 +55,12 @@ jobs:
           context: .
           file: ./Dockerfile
           push: false
-          tags: ghcr.io/${{ github.repository_owner }}/devops-production-lab/app:test-${{ github.sha }}
+          tags: ghcr.io/${{ env.REPO_LC }}/app:test-${{ github.sha }}
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'ghcr.io/${{ github.repository_owner }}/devops-production-lab/app:test-${{ github.sha }}'
+          image-ref: 'ghcr.io/${{ env.REPO_LC }}/app:test-${{ github.sha }}'
           format: 'table'
           exit-code: '0'
           ignore-unfixed: true
@@ -79,5 +83,6 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/devops-production-lab/app:latest
-            ghcr.io/${{ github.repository_owner }}/devops-production-lab/app:${{ github.sha }}
+            ghcr.io/${{ env.REPO_LC }}/app:latest
+            ghcr.io/${{ env.REPO_LC }}/app:${{ github.sha }}
+            
